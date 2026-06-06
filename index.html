@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Database Project — Team 33 - SECE </title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e29;
+  --border:#252a38;--border2:#2e3447;
+  --accent:#f5a623;--accent2:#ff6b35;
+  --success:#3ecf8e;--danger:#ff4d6d;
+  --text:#e8eaf2;--text-soft:#8b90a8;--text-dim:#555b73;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 4px 32px rgba(0,0,0,.45);
+  --ease:.22s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.6;
+}
+
+/* ── BACKGROUND ───────────────────────────────────── */
+.bg-grid{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(245,166,35,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(245,166,35,.04) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.18}
+.blob-1{width:520px;height:520px;background:radial-gradient(circle,#f5a623 0%,transparent 70%);top:-160px;left:-160px}
+.blob-2{width:420px;height:420px;background:radial-gradient(circle,#ff6b35 0%,transparent 70%);bottom:-120px;right:-120px}
+
+/* ── WRAPPER ──────────────────────────────────────── */
+.app-wrapper{position:relative;z-index:1;max-width:1380px;margin:0 auto;padding:0 20px 40px}
+
+/* ── HEADER ───────────────────────────────────────── */
+.header{padding:28px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{font-size:2rem;color:var(--accent);line-height:1;animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 10px rgba(245,166,35,.4))}50%{filter:drop-shadow(0 0 22px rgba(245,166,35,.8))}}
+.logo-title{display:block;font-weight:800;font-size:1.55rem;color:var(--text);letter-spacing:-.5px}
+.logo-sub{display:block;font-size:.78rem;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase}
+.stat-pill{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:8px 20px}
+.stat-num{font-weight:800;font-size:1.4rem;color:var(--accent);min-width:28px;text-align:center;transition:color var(--ease),transform var(--ease)}
+.stat-label{font-size:.8rem;color:var(--text-soft);text-transform:uppercase;letter-spacing:.1em}
+
+/* ── MAIN GRID ────────────────────────────────────── */
+.main{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start}
+
+/* ── PANELS ───────────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:var(--radius) var(--radius) 0 0}
+.panel-header{margin-bottom:24px}
+.panel-title{font-weight:700;font-size:1.15rem;color:var(--text);letter-spacing:-.3px}
+.panel-desc{font-size:.82rem;color:var(--text-soft);margin-top:4px}
+
+/* ── FORM ─────────────────────────────────────────── */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:.82rem;font-weight:500;color:var(--text-soft);margin-bottom:7px;letter-spacing:.03em}
+.form-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text);font-family:inherit;
+  font-size:.92rem;padding:10px 14px;outline:none;
+  transition:border-color var(--ease),box-shadow var(--ease),background var(--ease);
+}
+.form-input::placeholder{color:var(--text-dim)}
+.form-input:hover{border-color:var(--border2);background:#1e2230}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,.15);background:#1e2230}
+.form-textarea{resize:vertical;min-height:78px}
+.form-group.error .form-input{border-color:var(--danger);box-shadow:0 0 0 3px rgba(255,77,109,.12)}
+.form-group.valid .form-input{border-color:var(--success);box-shadow:0 0 0 3px rgba(62,207,142,.1)}
+.form-error{display:block;font-size:.76rem;color:var(--danger);margin-top:5px;min-height:16px;opacity:0;transform:translateY(-4px);transition:opacity var(--ease),transform var(--ease)}
+.form-group.error .form-error{opacity:1;transform:translateY(0)}
+
+/* ── BUTTONS ──────────────────────────────────────── */
+.form-actions{display:flex;gap:10px;margin-top:24px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;border:none;cursor:pointer;
+  font-family:inherit;font-weight:500;font-size:.88rem;
+  border-radius:var(--radius-sm);padding:10px 20px;
+  transition:all var(--ease);position:relative;overflow:hidden;white-space:nowrap;
+}
+.btn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .15s}
+.btn:hover::after{opacity:.06}
+.btn:active::after{opacity:.14}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0d0f14;font-weight:700;box-shadow:0 4px 16px rgba(245,166,35,.25);flex:1;justify-content:center}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,166,35,.4)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text-soft)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--danger);color:#fff;font-weight:600}
+.btn-danger:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,77,109,.3)}
+.btn-danger-ghost{background:transparent;border:1px solid rgba(255,77,109,.3);color:var(--danger);font-size:.8rem;padding:7px 14px}
+.btn-danger-ghost:hover{background:rgba(255,77,109,.08);border-color:var(--danger)}
+.btn-row-del{
+  background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.25);
+  color:var(--danger);font-size:.78rem;padding:5px 12px;border-radius:6px;
+  cursor:pointer;font-family:inherit;font-weight:500;transition:all var(--ease);white-space:nowrap;
+}
+.btn-row-del:hover{background:rgba(255,77,109,.2);border-color:var(--danger);transform:scale(1.04)}
+
+/* ── TOAST ────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);padding:12px 24px;border-radius:100px;
+  font-size:.88rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.4);
+  opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;
+  z-index:999;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.danger{border-color:var(--danger);color:var(--danger)}
+
+/* ── LIST PANEL HEADER ────────────────────────────── */
+.list-header{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:14px}
+.list-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search-wrap{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 12px;gap:8px;transition:border-color var(--ease)}
+.search-wrap:focus-within{border-color:var(--accent)}
+.search-input{background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:.88rem;width:170px}
+.search-input::placeholder{color:var(--text-dim)}
+
+/* ── EMPTY STATE ──────────────────────────────────── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 20px;gap:10px;text-align:center}
+.empty-icon{font-size:3.2rem;margin-bottom:8px;opacity:.7}
+.empty-title{font-weight:700;font-size:1.1rem;color:var(--text-soft)}
+.empty-sub{font-size:.82rem;color:var(--text-dim)}
+
+/* ── TABLE ────────────────────────────────────────── */
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm)}
+.student-table{width:100%;border-collapse:collapse;font-size:.86rem}
+.student-table thead th{
+  font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--text-soft);padding:10px 14px;background:var(--surface2);
+  border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;
+}
+.student-table thead th:first-child{border-radius:var(--radius-sm) 0 0 0}
+.student-table thead th:last-child{border-radius:0 var(--radius-sm) 0 0}
+.student-table tbody tr{border-bottom:1px solid var(--border);transition:background var(--ease);animation:rowIn .35s ease both}
+@keyframes rowIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+.student-table tbody tr:hover{background:rgba(245,166,35,.04)}
+.student-table tbody tr:last-child{border-bottom:none}
+.student-table td{padding:11px 14px;color:var(--text);vertical-align:middle}
+.td-num{font-weight:700;font-size:.78rem;color:var(--text-dim);width:36px}
+.td-name{font-weight:500}
+.td-email{color:var(--text-soft)}
+.td-phone{font-size:.82rem;color:var(--accent);font-weight:600}
+.td-address{color:var(--text-soft);max-width:200px;font-size:.82rem;word-break:break-word}
+.no-results-row td{text-align:center;color:var(--text-dim);padding:36px;font-size:.9rem}
+
+/* ── MODAL ────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:36px 32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);transform:scale(.92) translateY(16px);transition:transform .3s cubic-bezier(.34,1.4,.64,1)}
+.modal-overlay.active .modal{transform:scale(1) translateY(0)}
+.modal-icon{font-size:2.4rem;margin-bottom:12px}
+.modal-title{font-weight:700;font-size:1.15rem;color:var(--text);margin-bottom:10px}
+.modal-body{color:var(--text-soft);font-size:.88rem;margin-bottom:24px}
+.modal-actions{display:flex;gap:10px;justify-content:center}
+
+/* ── FOOTER ───────────────────────────────────────── */
+.footer{text-align:center;padding:28px 0 12px;border-top:1px solid var(--border);margin-top:40px;color:var(--text-dim);font-size:.78rem;letter-spacing:.04em}
+
+/* ── SCROLLBAR ────────────────────────────────────── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-dim)}
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+@media(max-width:960px){.main{grid-template-columns:1fr}.search-input{width:140px}}
+@media(max-width:600px){
+  .app-wrapper{padding:0 12px 28px}.panel{padding:20px 16px}
+  .header-inner{flex-direction:column;align-items:flex-start;gap:12px}
+  .list-header{flex-direction:column}.list-controls{width:100%;justify-content:space-between}
+  .search-input{width:110px}.modal-actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="app-wrapper">
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <div>
+          <span class="logo-title">Team - 33 (SECE)</span>
+          <span class="logo-sub">Student Database Project</span>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" id="totalCount">0</span>
+        <span class="stat-label">Students</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- FORM PANEL -->
+    <section class="panel panel-form">
+      <div class="panel-header">
+        <h2 class="panel-title">Add Student</h2>
+        <p class="panel-desc">Fill in the details below to register a new student.</p>
+      </div>
+      <form id="studentForm" novalidate>
+
+        <div class="form-group" id="group-name">
+          <label class="form-label" for="name">👤 Full Name</label>
+          <input type="text" id="name" class="form-input" placeholder="e.g. Dinesh Kumar" autocomplete="off"/>
+          <span class="form-error" id="err-name"></span>
+        </div>
+
+        <div class="form-group" id="group-email">
+          <label class="form-label" for="email">✉️ Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="e.g. dinesh@sece.ac.in" autocomplete="off"/>
+          <span class="form-error" id="err-email"></span>
+        </div>
+
+        <div class="form-group" id="group-phone">
+          <label class="form-label" for="phone">📱 Phone Number</label>
+          <input type="tel" id="phone" class="form-input" placeholder="e.g. 9876543210" maxlength="10"/>
+          <span class="form-error" id="err-phone"></span>
+        </div>
+
+        <div class="form-group" id="group-address">
+          <label class="form-label" for="address">🏠 Address</label>
+          <textarea id="address" class="form-input form-textarea" placeholder="e.g. 12, Anna Nagar, Coimbatore - 641006" rows="3"></textarea>
+          <span class="form-error" id="err-address"></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <span>＋</span><span>Add Student</span>
+          </button>
+          <button type="button" class="btn btn-ghost" id="clearBtn">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- LIST PANEL -->
+    <section class="panel panel-list">
+      <div class="panel-header list-header">
+        <div>
+          <h2 class="panel-title">Student Records</h2>
+          <p class="panel-desc">All registered students in this class.</p>
+        </div>
+        <div class="list-controls">
+          <div class="search-wrap">
+            <span>🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search students…"/>
+          </div>
+          <button class="btn btn-danger-ghost" id="clearAllBtn">🗑 Clear All</button>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🎓</div>
+        <p class="empty-title">No students yet</p>
+        <p class="empty-sub">Add your first student using the form.</p>
+      </div>
+
+      <div class="table-wrap" id="tableWrap" style="display:none">
+        <table class="student-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="studentTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    ClassReg &copy; 2026 &mdash; Student Database System &mdash; Built with ❤️ for SECE AI&DS
+  </footer>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon">⚠️</div>
+    <h3 class="modal-title">Confirm Action</h3>
+    <p class="modal-body" id="modalBody"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-danger" id="modalConfirm">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const form        = document.getElementById("studentForm");
+const nameInput   = document.getElementById("name");
+const emailInput  = document.getElementById("email");
+const phoneInput  = document.getElementById("phone");
+const addrInput   = document.getElementById("address");
+const clearBtn    = document.getElementById("clearBtn");
+const clearAllBtn = document.getElementById("clearAllBtn");
+const searchInput = document.getElementById("searchInput");
+const tbody       = document.getElementById("studentTbody");
+const tableWrap   = document.getElementById("tableWrap");
+const emptyState  = document.getElementById("emptyState");
+const totalCount  = document.getElementById("totalCount");
+const toast       = document.getElementById("toast");
+const modalOverlay= document.getElementById("modalOverlay");
+const modalBody   = document.getElementById("modalBody");
+const modalConfirm= document.getElementById("modalConfirm");
+const modalCancel = document.getElementById("modalCancel");
+
+let students = [], deleteId = null, toastTimer = null;
+const KEY = "classreg_v1";
+
+(function init(){
+  try{ const r=localStorage.getItem(KEY); students=r?JSON.parse(r):[]; }catch(e){ students=[]; }
+  renderTable(students);
+  bindEvents();
+})();
+
+function bindEvents(){
+  form.addEventListener("submit", handleSubmit);
+  clearBtn.addEventListener("click", resetForm);
+  clearAllBtn.addEventListener("click", openClearAllModal);
+  searchInput.addEventListener("input", handleSearch);
+  nameInput.addEventListener("blur",  ()=>validateField("name"));
+  emailInput.addEventListener("blur", ()=>validateField("email"));
+  phoneInput.addEventListener("blur", ()=>validateField("phone"));
+  addrInput.addEventListener("blur",  ()=>validateField("address"));
+  [nameInput,emailInput,phoneInput,addrInput].forEach(el=>{
+    el.addEventListener("focus",()=>{
+      document.getElementById("group-"+el.id).classList.remove("error");
+    });
+  });
+  phoneInput.addEventListener("input",()=>{
+    phoneInput.value=phoneInput.value.replace(/\D/g,"").slice(0,10);
+  });
+  modalCancel.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click",e=>{ if(e.target===modalOverlay) closeModal(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+}
+
+function handleSubmit(e){
+  e.preventDefault();
+  if(!validateAll()) return;
+  const s={
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2),
+    name: nameInput.value.trim(),
+    email: emailInput.value.trim().toLowerCase(),
+    phone: phoneInput.value.trim(),
+    address: addrInput.value.trim()
+  };
+  students.push(s);
+  save();
+  renderTable(students);
+  resetForm();
+  showToast("✅ Student added successfully!", "success");
+  totalCount.style.transform="scale(1.4)";
+  totalCount.style.color="var(--success)";
+  setTimeout(()=>{ totalCount.style.transform=""; totalCount.style.color=""; },400);
+}
+
+const RULES={
+  name:    {test:v=>v.trim().length>=2,          msg:"Name must be at least 2 characters."},
+  email:   {test:v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()), msg:"Enter a valid email address."},
+  phone:   {test:v=>/^[6-9]\d{9}$/.test(v.trim()),               msg:"Enter a valid 10-digit mobile number."},
+  address: {test:v=>v.trim().length>=5,          msg:"Address must be at least 5 characters."}
+};
+const INPUTS={name:nameInput,email:emailInput,phone:phoneInput,address:addrInput};
+
+function validateField(id){
+  const el=INPUTS[id], g=document.getElementById("group-"+id), e=document.getElementById("err-"+id), r=RULES[id];
+  if(!r.test(el.value)){ g.classList.add("error"); g.classList.remove("valid"); e.textContent=r.msg; return false; }
+  g.classList.remove("error"); g.classList.add("valid"); e.textContent=""; return true;
+}
+function validateAll(){ return ["name","email","phone","address"].map(validateField).every(Boolean); }
+
+function renderTable(data){
+  totalCount.textContent = students.length;
+  const searching = searchInput.value.trim()!=="";
+  const show = students.length>0||searching;
+  tableWrap.style.display = show ? "block":"none";
+  emptyState.style.display = show ? "none":"flex";
+  tbody.innerHTML="";
+  if(!data.length){
+    if(searching) tbody.innerHTML='<tr class="no-results-row"><td colspan="6">No students match your search.</td></tr>';
+    return;
+  }
+  data.forEach((s,i)=>{
+    const tr=document.createElement("tr");
+    tr.style.animationDelay=(i*40)+"ms";
+    tr.innerHTML=
+      '<td class="td-num">'+(i+1)+'</td>'+
+      '<td class="td-name">'+esc(s.name)+'</td>'+
+      '<td class="td-email">'+esc(s.email)+'</td>'+
+      '<td class="td-phone">'+esc(s.phone)+'</td>'+
+      '<td class="td-address">'+esc(s.address)+'</td>'+
+      '<td><button class="btn-row-del" data-id="'+s.id+'">🗑 Delete</button></td>';
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll(".btn-row-del").forEach(b=>b.addEventListener("click",()=>confirmDelete(b.dataset.id)));
+}
+
+function handleSearch(){
+  const q=searchInput.value.toLowerCase().trim();
+  if(!q){ renderTable(students); return; }
+  renderTable(students.filter(s=>
+    s.name.toLowerCase().includes(q)||s.email.toLowerCase().includes(q)||
+    s.phone.includes(q)||s.address.toLowerCase().includes(q)
+  ));
+}
+
+function confirmDelete(id){
+  const s=students.find(x=>x.id===id); if(!s) return;
+  deleteId=id;
+  modalBody.innerHTML="Remove <strong>"+esc(s.name)+"</strong>? This cannot be undone.";
+  openModal();
+  modalConfirm.onclick=function(){
+    students=students.filter(x=>x.id!==deleteId);
+    save(); handleSearch(); closeModal();
+    showToast("🗑️ Student deleted.", "danger");
+    deleteId=null;
+  };
+}
+
+function openClearAllModal(){
+  if(!students.length){ showToast("No students to clear.",""); return; }
+  modalBody.innerHTML="Delete <strong>all "+students.length+" student(s)</strong>? This cannot be undone.";
+  openModal();
+  modalConfirm.onclick=function(){
+    students=[]; save(); searchInput.value=""; renderTable([]); closeModal();
+    showToast("🗑️ All records cleared.", "danger");
+  };
+}
+
+function openModal(){ modalOverlay.classList.add("active"); }
+function closeModal(){ modalOverlay.classList.remove("active"); deleteId=null; modalConfirm.onclick=null; }
+
+function showToast(msg,type){
+  clearTimeout(toastTimer);
+  toast.textContent=msg; toast.className="toast "+(type||"");
+  void toast.offsetWidth; toast.classList.add("show");
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),2800);
+}
+
+function resetForm(){
+  form.reset();
+  ["name","email","phone","address"].forEach(f=>{
+    const g=document.getElementById("group-"+f);
+    g.classList.remove("error","valid");
+    document.getElementById("err-"+f).textContent="";
+  });
+  nameInput.focus();
+}
+
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(students)); }catch(e){} }
+
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+</script>
+</body>
+</html>
